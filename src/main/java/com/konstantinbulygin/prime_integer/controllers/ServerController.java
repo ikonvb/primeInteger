@@ -60,10 +60,12 @@ public class ServerController {
 
     private void generatePrimeArrays(ServerAnswer answer) {
         int counter = 5;
-        List<Integer> list = primeNumbersTill(2, answer.getMessage());
-        int startRange = (list.get(list.size() - 1) + 1);
+        int startRange = 2;
+        List<Integer> list = primeNumbersTill(startRange, answer.getMessage());
+
         while (counter > 0) {
             answer.getMessages().add(list);
+            startRange = (list.get(list.size() - 1) + 2);
             list = primeNumbersTill(startRange, answer.getMessage());
             counter--;
         }
