@@ -1,0 +1,1 @@
+web: java -jar target/java_portfolio-0.0.1-SNAPSHOT.jar
