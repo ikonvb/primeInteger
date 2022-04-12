@@ -1,4 +1,4 @@
-//=============================================================================
+'use-strict'
 var stompClient = null;
 
 $(document).ready(function(){
@@ -20,43 +20,38 @@ $(document).ready(function(){
 });
 
 function createConnection() {
+
 	if(stompClient!=null) {
 	    stompClient.disconnect();
 	}
-
 	var socket = new SockJS('/message-socket');
 	stompClient = Stomp.over(socket);
 
 	stompClient.connect({}, function(connectionData) {
-
 	    stompClient.subscribe('/topic/message', function(data) {
-	        var response = JSON.parse(data.body);
 
+	        var response = JSON.parse(data.body);
 	        $('#receiveMsg').children().remove();
 	        $('#receiveMsg').append('<tbody></tbody>');
 	        var tbody = $('#receiveMsg').children();
 
             $.each(response, function(responseIndex, responseValue) {
                 $.each(responseValue, function(i, item) {
-                    console.log(item);
                     tbody.append( '<tr><td>'+  item + '</td></tr>' );
                 })
             });
             $('table').attr('class', 'table table-striped');
-
     	})
 
     	stompClient.subscribe('/topic/randmessage', function(data) {
 
-    	    var response = JSON.parse(data.body);
-
         	$('#receiveRandomMsg').children().remove();
         	$('#receiveRandomMsg').append('<tbody></tbody>');
         	var tbody = $('#receiveRandomMsg').children();
+            var response = JSON.parse(data.body);
 
             $.each(response, function(responseIndex, responseValue) {
                 $.each(responseValue, function(i, item) {
-                    console.log(item);
                     tbody.append( '<tr><td>'+  item + '</td></tr>' );
                 })
             });
@@ -65,13 +60,12 @@ function createConnection() {
 
         stompClient.subscribe('/topic/automessage', function(data) {
 
-            	    var response = JSON.parse(data.body);
-
-                	$('#receiveAutoMsg').children().remove();
-                	$('#receiveAutoMsg').append('<tbody></tbody>');
-                	var tbody = $('#receiveAutoMsg').children();
-                     tbody.append( '<tr><td>'+  response + '</td></tr>' );
-                    $('table').attr('class', 'table table-striped');
+            $('#receiveAutoMsg').children().remove();
+            $('#receiveAutoMsg').append('<tbody></tbody>');
+            var tbody = $('#receiveAutoMsg').children();
+            var response = JSON.parse(data.body);
+            tbody.append( '<tr><td>'+  response + '</td></tr>' );
+            $('table').attr('class', 'table table-striped');
         })
 	})
 }
@@ -79,19 +73,16 @@ function createConnection() {
 function sendMessageToGenerate() {
 	var clientMessage = $("#generate").val();
 	stompClient.send("/app/randarray", {}, JSON.stringify({'clientMessage': clientMessage }));
-    console.log(clientMessage);
 }
 
 function sendMessageToAuto() {
 	var clientMessage = $("#auto").val();
 	stompClient.send("/app/autoarray", {}, JSON.stringify({'clientMessage': clientMessage }));
-    console.log(clientMessage);
 }
 
 function sendMessageToSocketWithVal() {
 	var clientMessage = $("#message").val();
 	stompClient.send("/app/numarray", {}, JSON.stringify({'clientMessage': clientMessage }));
-    //stompClient.send("/app/numarray", {}, clientMessage);
     $("#message").val('');
 }
 
