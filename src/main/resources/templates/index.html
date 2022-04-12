@@ -18,51 +18,17 @@
                 <input type="text" class="form-control" id="message">
                 <button id="send" type="button" class="btn btn-success">Send</button>
             </div>
-            <table id="receiveMsg" class="table">
-                <thead>
-                <tr>
-                    <th scope="col">#</th>
-                </tr>
-                </thead>
+            <table id="receiveMsg">
             </table>
             <div class="row g-3 align-items-center">
                 <p>Generate random sequence</p>
-                <button id="auto" type="button" class="btn btn-success">Auto</button>
-                <button id="generate" type="button" class="btn btn-success">Generate</button>
+                <button id="auto" type="button" value="auto" class="btn btn-success">Auto</button>
+                <button id="generate" type="button" value="generate" class="btn btn-success">Generate</button>
             </div>
+            <table id="receiveRandomMsg">
+            </table>
         </div>
-        <table id="receiveRandomMsg" class="table">
-            <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">First</th>
-                <th scope="col">Last</th>
-                <th scope="col">Handle</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-            </tr>
-            </tbody>
-        </table>
     </div>
 </div>
-<script>
-    var connection = null;
-var serverUrl;
-var scheme = "ws";
-serverUrl = scheme + "://" + document.location.hostname + ":5000" + "/message-socket";
-console.log(serverUrl);
-connection = new WebSocket(serverUrl);
-connection.onopen = function(evt) {
-    console.log(evt);
-//    document.getElementById("text").disabled = false;
-//    document.getElementById("send").disabled = false;
-};
-</script>
 </body>
 </html>

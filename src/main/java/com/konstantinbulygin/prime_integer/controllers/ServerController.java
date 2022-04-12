@@ -1,74 +1,98 @@
 package com.konstantinbulygin.prime_integer.controllers;
 
-import com.konstantinbulygin.prime_integer.model.ServerAnswer;
+import com.konstantinbulygin.prime_integer.model.ClientRequest;
+import com.konstantinbulygin.prime_integer.model.ServerResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Controller
 public class ServerController {
 
+    @Autowired
+    ServerResponse response;
+
     @GetMapping("/")
     public String admin() {
         return "index";
     }
 
+    @MessageMapping("/autoarray")
+    @SendTo("/topic/randmessage")
+    public ServerResponse autoArrays(ClientRequest request) throws InterruptedException {
 
-    @MessageMapping("/autoarrays")
-    @SendTo("/topic/autoarrays")
-    public ServerAnswer autoGenerateArrays(ServerAnswer answer, Model model) throws InterruptedException {
         Thread.sleep(1000);
-        if (answer.getMessage() == 2) {
-            model.addAttribute("auto", " auto generation");
-            System.out.println(answer.getMessage() + " auto generation");
-            return answer;
-        } else {
-            model.addAttribute("auto", " o generation");
-            return answer;
+
+        ServerResponse serverResponse = new ServerResponse();
+        List<List<Integer>> listArray = new ArrayList<>();
+
+        if (request.getClientMessage().equalsIgnoreCase("auto")) {
+            return generatePrimeArrays(0);
         }
+        if (request.getClientMessage().equalsIgnoreCase("generate")) {
+            evaluateRandomPrime(listArray);
+            serverResponse.setMessages(listArray);
+            return serverResponse;
+        }
+        return null;
     }
 
-    @MessageMapping("/genarrays")
-    @SendTo("/topic/arrays")
-    public ServerAnswer generateArrays(ServerAnswer answer) throws InterruptedException {
-        Thread.sleep(1000);
-        if (answer.getMessage() == 1) {
-            System.out.println(answer.getMessage() + " simple generation");
-            return answer;
-        } else {
-            return answer;
+    private void evaluateRandomPrime(List<List<Integer>> listArray) {
+        for (int i = 0; i < response.getMessages().size(); i++) {
+            Set<Integer> integerSet = new HashSet<>();
+            Random r = new Random();
+            while (integerSet.size() < 6) {
+                integerSet.add(response.getMessages().get(i).get(r.nextInt(6) + 1));
+            }
+            List<Integer> integers = new ArrayList<>(integerSet);
+            listArray.add(integers);
         }
     }
 
     @MessageMapping("/numarray")
     @SendTo("/topic/message")
-    public ServerAnswer getArrays(ServerAnswer answer) throws InterruptedException {
+    public ServerResponse getArrays(ClientRequest request) throws InterruptedException {
         Thread.sleep(1000);
-        if (answer.getMessage() > 0) {
-            generatePrimeArrays(answer);
-            return answer;
-        } else {
-            return answer;
+
+        try {
+            int content = Integer.parseInt(request.getClientMessage());
+            if (content >= 10 && content <= 100) {
+                ServerResponse resp = generatePrimeArrays(content);
+                response.setMessages(resp.getMessages());
+                return resp;
+            } else {
+                return null;
+            }
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
-    private void generatePrimeArrays(ServerAnswer answer) {
+    private ServerResponse generatePrimeArrays(int len) {
+
+        if (len == 0) {
+            return new ServerResponse();
+        }
+
+        ServerResponse answer = new ServerResponse();
         int counter = 5;
         int startRange = 2;
-        List<Integer> list = primeNumbersTill(startRange, answer.getMessage());
+        List<Integer> list = primeNumbersTill(startRange, len);
 
         while (counter > 0) {
             answer.getMessages().add(list);
             startRange = (list.get(list.size() - 1) + 2);
-            list = primeNumbersTill(startRange, answer.getMessage());
+            list = primeNumbersTill(startRange, len);
             counter--;
         }
+
+        return answer;
     }
 
     public static List<Integer> primeNumbersTill(int startRange, int n) {
