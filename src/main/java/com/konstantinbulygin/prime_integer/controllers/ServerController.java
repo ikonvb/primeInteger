@@ -2,9 +2,12 @@ package com.konstantinbulygin.prime_integer.controllers;
 
 import com.konstantinbulygin.prime_integer.model.ClientRequest;
 import com.konstantinbulygin.prime_integer.model.ServerResponse;
+import com.konstantinbulygin.prime_integer.services.ScheduledPushMessages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -16,7 +19,13 @@ import java.util.stream.IntStream;
 public class ServerController {
 
     @Autowired
+    ScheduledPushMessages scheduledPushMessages;
+
+    @Autowired
     ServerResponse response;
+
+    @Autowired
+    SimpMessagingTemplate simpMessagingTemplate;
 
     @GetMapping("/")
     public String admin() {
@@ -24,21 +33,26 @@ public class ServerController {
     }
 
     @MessageMapping("/autoarray")
-    @SendTo("/topic/randmessage")
-    public ServerResponse autoArrays(ClientRequest request) throws InterruptedException {
-
-        Thread.sleep(1000);
-
-        ServerResponse serverResponse = new ServerResponse();
-        List<List<Integer>> listArray = new ArrayList<>();
-
+    @SendTo("/topic/automessage")
+    public void autoArrays(ClientRequest request) {
         if (request.getClientMessage().equalsIgnoreCase("auto")) {
-            return generatePrimeArrays(0);
+            scheduledPushMessages.sendMessage(simpMessagingTemplate, response.getMessages().get(0));
         }
+    }
+
+    @MessageMapping("/randarray")
+    @SendTo("/topic/randmessage")
+    public ServerResponse genArrays(ClientRequest request) {
         if (request.getClientMessage().equalsIgnoreCase("generate")) {
-            evaluateRandomPrime(listArray);
-            serverResponse.setMessages(listArray);
-            return serverResponse;
+            if (response.getMessages().size() > 0) {
+                ServerResponse serverResponse = new ServerResponse();
+                List<List<Integer>> listArray = new ArrayList<>();
+                evaluateRandomPrime(listArray);
+                serverResponse.setMessages(listArray);
+                return serverResponse;
+            } else {
+                return null;
+            }
         }
         return null;
     }
@@ -57,9 +71,7 @@ public class ServerController {
 
     @MessageMapping("/numarray")
     @SendTo("/topic/message")
-    public ServerResponse getArrays(ClientRequest request) throws InterruptedException {
-        Thread.sleep(1000);
-
+    public ServerResponse getArrays(ClientRequest request) {
         try {
             int content = Integer.parseInt(request.getClientMessage());
             if (content >= 10 && content <= 100) {
@@ -77,7 +89,7 @@ public class ServerController {
     private ServerResponse generatePrimeArrays(int len) {
 
         if (len == 0) {
-            return new ServerResponse();
+            return null;
         }
 
         ServerResponse answer = new ServerResponse();
@@ -91,12 +103,10 @@ public class ServerController {
             list = primeNumbersTill(startRange, len);
             counter--;
         }
-
         return answer;
     }
 
     public static List<Integer> primeNumbersTill(int startRange, int n) {
-
         return IntStream.rangeClosed(startRange, Integer.MAX_VALUE)
                 .filter(ServerController::isPrime).boxed()
                 .limit(n)
@@ -107,6 +117,4 @@ public class ServerController {
         return IntStream.rangeClosed(2, (int) (Math.sqrt(number)))
                 .allMatch(n -> number % n != 0);
     }
-
-
 }

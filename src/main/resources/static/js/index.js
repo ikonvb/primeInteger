@@ -62,12 +62,23 @@ function createConnection() {
             });
             $('table').attr('class', 'table table-striped');
         })
+
+        stompClient.subscribe('/topic/automessage', function(data) {
+
+            	    var response = JSON.parse(data.body);
+
+                	$('#receiveAutoMsg').children().remove();
+                	$('#receiveAutoMsg').append('<tbody></tbody>');
+                	var tbody = $('#receiveAutoMsg').children();
+                     tbody.append( '<tr><td>'+  response + '</td></tr>' );
+                    $('table').attr('class', 'table table-striped');
+        })
 	})
 }
 
 function sendMessageToGenerate() {
 	var clientMessage = $("#generate").val();
-	stompClient.send("/app/autoarray", {}, JSON.stringify({'clientMessage': clientMessage }));
+	stompClient.send("/app/randarray", {}, JSON.stringify({'clientMessage': clientMessage }));
     console.log(clientMessage);
 }
 
