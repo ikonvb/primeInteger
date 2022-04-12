@@ -31,7 +31,7 @@ public class ServerController {
     }
 
     //send prime arrays periodically
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 10000)
     public void sendMessage() {
         if (flag) {
             new Thread(() ->
