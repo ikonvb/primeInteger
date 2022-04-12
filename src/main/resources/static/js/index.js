@@ -92,7 +92,6 @@ function sendMessageToSocketWithVal() {
 	var clientMessage = $("#message").val();
 	stompClient.send("/app/numarray", {}, JSON.stringify({'clientMessage': clientMessage }));
     //stompClient.send("/app/numarray", {}, clientMessage);
-    console.log(clientMessage);
     $("#message").val('');
 }
 

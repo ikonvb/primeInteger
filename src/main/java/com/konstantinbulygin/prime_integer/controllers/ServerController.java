@@ -2,7 +2,6 @@ package com.konstantinbulygin.prime_integer.controllers;
 
 import com.konstantinbulygin.prime_integer.model.ClientRequest;
 import com.konstantinbulygin.prime_integer.model.ServerResponse;
-import com.konstantinbulygin.prime_integer.services.ScheduledPushMessages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -11,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -18,8 +18,7 @@ import java.util.stream.IntStream;
 @Controller
 public class ServerController {
 
-    @Autowired
-    ScheduledPushMessages scheduledPushMessages;
+    private static boolean flag = false;
 
     @Autowired
     ServerResponse response;
@@ -32,11 +31,17 @@ public class ServerController {
         return "index";
     }
 
+    @Scheduled(fixedRate = 3000)
+    public void sendMessage() {
+        if (flag) {
+            new Thread(() -> simpMessagingTemplate.convertAndSend("/topic/automessage", LocalDateTime.now())).start();
+        }
+    }
+
     @MessageMapping("/autoarray")
-    @SendTo("/topic/automessage")
     public void autoArrays(ClientRequest request) {
-        if (request.getClientMessage().equalsIgnoreCase("auto")) {
-            scheduledPushMessages.sendMessage(simpMessagingTemplate, response.getMessages().get(0));
+        if (request.getClientMessage().equalsIgnoreCase("auto") && response.getMessages().size() > 0) {
+            flag = true;
         }
     }
 
@@ -87,11 +92,6 @@ public class ServerController {
     }
 
     private ServerResponse generatePrimeArrays(int len) {
-
-        if (len == 0) {
-            return null;
-        }
-
         ServerResponse answer = new ServerResponse();
         int counter = 5;
         int startRange = 2;
