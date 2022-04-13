@@ -11,6 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,6 +22,7 @@ import java.util.stream.IntStream;
 public class ServerController {
 
     private boolean flag = false;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     @Autowired
     ServerResponse response;
@@ -71,13 +76,14 @@ public class ServerController {
         try {
             int content = Integer.parseInt(request.getClientMessage());
             if (content >= 10 && content <= 100) {
-                ServerResponse resp = getAndSendPrimeArrays(content);
+                Future<ServerResponse> future = executorService.submit(() -> getAndSendPrimeArrays(content));
+                ServerResponse resp = future.get();
                 response.setMessages(resp.getMessages());
                 return resp;
             } else {
                 return null;
             }
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | ExecutionException | InterruptedException e) {
             return null;
         }
     }
